@@ -16,6 +16,7 @@ struct Flag<'a> {
     help: &'a str,
 }
 
+const USER_PAX_FLAGS: &str = "user.pax.flags";
 const FLAGTABLE: [Flag; 5] = [
     Flag {disable: 'p', enable: 'P', help: "PAGEEXEC"},
     Flag {disable: 'e', enable: 'E', help: "EMUTRAMP"},
@@ -64,8 +65,8 @@ fn main() {
 
     let target_binary = PathBuf::from(matches.free[0].clone());
 
-    match xattr::set(target_binary, "user.pax.flags", flags.as_bytes()) {
+    match xattr::set(target_binary, USER_PAX_FLAGS, flags.as_bytes()) {
         Ok(()) => {},
-        Err(f) => { panic!("setting xattr: {}", f.to_string()) }
+        Err(f) => { panic!("setting xattr {}: {}", USER_PAX_FLAGS, f.to_string()) }
     }
 }
