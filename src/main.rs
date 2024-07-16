@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::env;
 
 use getopts::Options;
+use xattr;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} BINARY [options]", program);
@@ -62,4 +63,9 @@ fn main() {
     }
 
     let target_binary = PathBuf::from(matches.free[0].clone());
+
+    match xattr::set(target_binary, "user.pax.flags", flags.as_bytes()) {
+        Ok(()) => {},
+        Err(f) => { panic!("setting xattr: {}", f.to_string()) }
+    }
 }
