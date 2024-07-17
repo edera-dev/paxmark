@@ -31,4 +31,7 @@ jobs:
         rustup default stable
     - run: |
         rustup target add --toolchain stable "${{ matrix.platform }}"
+    - run: |
+        sudo apt update && sudo apt -y install gcc-aarch64-linux-gnu
+      if: ${{ matrix.platform }} != "x86_64-unknown-linux-gnu"
     - run: cargo build --target "${{ matrix.platform }}" --bin paxmark
