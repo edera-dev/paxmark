@@ -31,4 +31,4 @@ jobs:
         rustup default stable
     - run: |
         rustup target add --toolchain stable "${{ matrix.platform }}"
-    - run: cargo build --bin --target "${{ matrix.platform }}" paxmark
+    - run: cargo build --target "${{ matrix.platform }}" --bin paxmark
