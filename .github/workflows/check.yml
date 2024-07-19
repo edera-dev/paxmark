@@ -7,18 +7,86 @@ on:
     branches:
     - main
 jobs:
-  fmt:
-    name: fmt
+  rustfmt:
+    name: rustfmt
     runs-on: ubuntu-latest
     steps:
-    - uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
+    - name: harden runner
+      uses: step-security/harden-runner@0d381219ddf674d61a7572ddd19d7941e271515c # v2.9.0
       with:
         egress-policy: audit
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    - name: checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         submodules: recursive
-    - run: |
+    - name: install stable rust toolchain with rustfmt
+      run: |
         rustup update --no-self-update stable
         rustup default stable
         rustup component add rustfmt
-    - run: cargo fmt --all -- --check || true
+    - name: install linux dependencies
+      run: ./hack/ci/install-linux-deps.sh
+    - name: cargo fmt
+      run: cargo fmt --all -- --check
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+        - x86_64-unknown-linux-gnu
+        - x86_64-unknown-linux-musl
+        - aarch64-unknown-linux-gnu
+        - aarch64-unknown-linux-musl
+    runs-on: ubuntu-latest
+    name: build ${{ matrix.target }}
+    steps:
+    - name: harden runner
+      uses: step-security/harden-runner@0d381219ddf674d61a7572ddd19d7941e271515c # v2.9.0
+      with:
+        egress-policy: audit
+    - name: checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        submodules: recursive
+    - name: install stable rust toolchain
+      run: |
+        rustup update --no-self-update stable
+        rustup default stable
+    - name: install linux dependencies
+      run: ./hack/ci/install-linux-deps.sh
+    - name: install ${{ matrix.target }} rust target
+      run: |
+        rustup target add --toolchain stable "${{ matrix.target }}"
+    - name: cargo build
+      run: cross build --target "${{ matrix.target }}" --bin paxmark
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+        - x86_64-unknown-linux-gnu
+        - x86_64-unknown-linux-musl
+        - aarch64-unknown-linux-gnu
+        - aarch64-unknown-linux-musl
+    runs-on: ubuntu-latest
+    name: test ${{ matrix.target }}
+    steps:
+    - name: harden runner
+      uses: step-security/harden-runner@0d381219ddf674d61a7572ddd19d7941e271515c # v2.9.0
+      with:
+        egress-policy: audit
+    - name: checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        submodules: recursive
+    - name: install stable rust toolchain
+      run: |
+        rustup update --no-self-update stable
+        rustup default stable
+    - name: install linux dependencies
+      run: ./hack/ci/install-linux-deps.sh
+    - name: install ${{ matrix.target }} rust target
+      run: |
+        rustup target add --toolchain stable "${{ matrix.target }}"
+    - name: cargo test
+      run: cross test --target "${{ matrix.target }}" --bin paxmark

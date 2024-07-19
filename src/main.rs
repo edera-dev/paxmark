@@ -31,25 +31,25 @@ enabled for missing marks, matching defaults.
 struct Cli {
     #[arg(value_hint = clap::ValueHint::DirPath)]
     binary: PathBuf,
-    #[arg(short='P', group="pageexec")]
+    #[arg(short = 'P', group = "pageexec")]
     e_pageexec: bool,
-    #[arg(short='p', group="pageexec")]
+    #[arg(short = 'p', group = "pageexec")]
     d_pageexec: bool,
-    #[arg(short='E', group="emutramp")]
+    #[arg(short = 'E', group = "emutramp")]
     e_emutramp: bool,
-    #[arg(short='e', group="emutramp")]
+    #[arg(short = 'e', group = "emutramp")]
     d_emutramp: bool,
-    #[arg(short='M', group="mprotect")]
+    #[arg(short = 'M', group = "mprotect")]
     e_mprotect: bool,
-    #[arg(short='m', group="mprotect")]
+    #[arg(short = 'm', group = "mprotect")]
     d_mprotect: bool,
-    #[arg(short='R', group="randmmap")]
+    #[arg(short = 'R', group = "randmmap")]
     e_randmmap: bool,
-    #[arg(short='r', group="randmmap")]
+    #[arg(short = 'r', group = "randmmap")]
     d_randmmap: bool,
-    #[arg(short='S', group="segmexec")]
+    #[arg(short = 'S', group = "segmexec")]
     e_segmexec: bool,
-    #[arg(short='s', group="segmexec")]
+    #[arg(short = 's', group = "segmexec")]
     d_segmexec: bool,
 }
 
@@ -79,16 +79,16 @@ impl Delta {
         match (enable, disable) {
             (true, _) => Enable,
             (_, true) => Disable,
-            _         => Keep,
+            _ => Keep,
         }
     }
 
     fn apply(self, c: char) -> char {
         use Delta::*;
         match self {
-            Enable  => c.to_ascii_uppercase(),
+            Enable => c.to_ascii_uppercase(),
             Disable => c.to_ascii_lowercase(),
-            Keep    => c,
+            Keep => c,
         }
     }
 }
@@ -100,12 +100,14 @@ fn main() {
         // Happy case with usable args
         Ok(x) => x,
         // Unhappy case that we're fine letting clap handle
-        Err(err) if err.kind() != ClapErrKind::DisplayHelp => { err.exit(); },
+        Err(err) if err.kind() != ClapErrKind::DisplayHelp => {
+            err.exit();
+        }
         _ => {
             // Print the help message by hand
             println!("{HELP_MSG}");
             std::process::exit(0);
-        },
+        }
     };
 
     // Get the current xattr value, print it for transparency
@@ -127,10 +129,11 @@ fn main() {
     // TODO: extract and test against proper and improper current values
     let mut new = current
         .chars()
-        .filter_map(|c| {
-            match delta.remove(&c.to_ascii_uppercase()) {
-                Some(d) => Some(d.apply(c)),
-                None => { valid_current = false; None }
+        .filter_map(|c| match delta.remove(&c.to_ascii_uppercase()) {
+            Some(d) => Some(d.apply(c)),
+            None => {
+                valid_current = false;
+                None
             }
         })
         .collect::<String>();
@@ -181,9 +184,9 @@ mod tests {
         // - if enabled  -> Enable
         // - if disabled -> Disable
         // - if neither  -> Keep
-        assert_eq!(Delta::new(true,  true),  Enable);
-        assert_eq!(Delta::new(true,  false), Enable);
-        assert_eq!(Delta::new(false, true),  Disable);
+        assert_eq!(Delta::new(true, true), Enable);
+        assert_eq!(Delta::new(true, false), Enable);
+        assert_eq!(Delta::new(false, true), Disable);
         assert_eq!(Delta::new(false, false), Keep);
     }
 
@@ -201,4 +204,3 @@ mod tests {
         assert_eq!(k.apply('q'), 'q');
     }
 }
-
